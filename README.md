@@ -13,7 +13,7 @@
 </div>
 <nav>
 <ul>
-<li><a href="#home">Ballina</a></li>
+<li><a href="#home">Bebelina</a></li>
 <li><a href="#products">Produktet</a></li>
 <li><a href="#contact">Kontakt</a></li>
 </ul>
@@ -28,7 +28,7 @@
 <div class="product-grid">
 <!-- Produkti 1 -->
 <div class="product-card">
-<img src="images/kremra-bebelina🧷🧷💎.jpg" alt="Kremra Bebelina Libero">
+<img src="images/kremra-bebelina.jpg" alt="Kremra Bebelina Libero">
 <h3>Kremra Bebëlina</h3>
 <p>Mbrojtje e përkryer për lëkurën e delikat të foshnjave.</p>
 <button class="product-btn">Detajet</button>
