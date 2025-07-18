@@ -1,266 +1,109 @@
-// Document Ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Mobile Menu Toggle
-    const mobileMenuBtn = document.querySelector('.mobile-menu');
-    const nav = document.querySelector('nav');
-    
-    mobileMenuBtn.addEventListener('click', function() {
-        nav.classList.toggle('active');
-        this.querySelector('i').classList.toggle('fa-times');
-    });
-    
-    // Close mobile menu when clicking on a link
-    document.querySelectorAll('nav a').forEach(link => {
-        link.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
-                nav.classList.remove('active');
-                mobileMenuBtn.querySelector('i').classList.remove('fa-times');
-            }
-        });
-    });
-    
-    // Header Scroll Effect
-    window.addEventListener('scroll', function() {
-        const header = document.querySelector('header');
-        const backToTop = document.querySelector('.back-to-top');
-        
-        if (window.scrollY > 100) {
-            header.classList.add('scrolled');
-            backToTop.classList.add('active');
-        } else {
-            header.classList.remove('scrolled');
-            backToTop.classList.remove('active');
-        }
-    });
-    
-    // Product Filtering
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    const productContainer = document.getElementById('product-container');
-    
-    // Sample product data (in a real app, this would come from an API or JSON file)
-    const products = [
-        {
-            id: 1,
-            name: 'Kremra Bebëlina',
-            description: 'Për lëkurën e ndjeshme të foshnjave. Formulë pa parfum dhe paraben.',
-            price: 2500,
-            category: 'kremra',
-            image: 'images/kremra-libero.jpg'
-        },
-        {
-            id: 2,
-            name: 'Pelena Libero',
-            description: 'Pelena ultra-përthithëse pa alkool, me mbajtëse elastike.',
-            price: 3200,
-            category: 'pelena',
-            image: 'images/pelena-libero.jpg'
-        },
-        {
-            id: 3,
-            name: 'Ushqim për Fëmijë',
-            description: 'Ushqim organik për fëmijë mbi 6 muaj. Pa shtesa artificiale.',
-            price: 1800,
-            category: 'ushqim',
-            image: 'images/baby-food.jpg'
-        },
-        {
-            id: 4,
-            name: 'Shampo për Fëmijë',
-            description: 'Shampo me formulë delikate për fëmijë. Nuk i irriton sytë.',
-            price: 2100,
-            category: 'kremra',
-            image: 'images/baby-shampoo.jpg'
-        }
-    ];
-    
-    // Display all products initially
-    displayProducts(products);
-    
-    // Filter products
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Remove active class from all buttons
-            filterBtns.forEach(btn => btn.classList.remove('active'));
-            
-            // Add active class to clicked button
-            this.classList.add('active');
-            
-            const filter = this.dataset.filter;
-            
-            if (filter === 'all') {
-                displayProducts(products);
-            } else {
-                const filteredProducts = products.filter(product => product.category === filter);
-                displayProducts(filteredProducts);
-            }
-        });
-    });
-    
-    // Function to display products
-    function displayProducts(productsToDisplay) {
-        productContainer.innerHTML = '';
-        
-        if (productsToDisplay.length === 0) {
-            productContainer.innerHTML = '<p class="no-products">Nuk u gjet asnjë produkt.</p>';
-            return;
-        }
-        
-        productsToDisplay.forEach(product => {
-            const productCard = document.createElement('div');
-            productCard.className = 'product-card';
-            productCard.innerHTML = `
-                <img src="${product.image}" alt="${product.name}" loading="lazy">
-                <div class="product-info">
-                    <h3>${product.name}</h3>
-                    <p>${product.description}</p>
-                    <div class="product-price">
-                        <span class="price">${product.price} Lekë</span>
-                        <button class="add-to-cart" data-id="${product.id}">Shto në Shportë</button>
-                    </div>
-                </div>
-            `;
-            
-            productContainer.appendChild(productCard);
-        });
-        
-        // Add event listeners to "Add to Cart" buttons
-        document.querySelectorAll('.add-to-cart').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const productId = parseInt(this.dataset.id);
-                addToCart(productId);
-            });
-        });
-    }
-    
-    // Cart functionality
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const cartCount = document.getElementById('cart-count');
-    const cartModal = document.getElementById('cart-modal');
-    const closeModal = document.querySelector('.close-modal');
-    const cartItemsContainer = document.getElementById('cart-items');
-    const cartTotal = document.getElementById('cart-total');
-    const checkoutBtn = document.getElementById('checkout-btn');
-    
-    // Update cart count
-    updateCartCount();
-    
-    // Add to cart function
-    function addToCart(productId) {
-        const product = products.find(p => p.id === productId);
-        
-        if (!product) return;
-        
-        const existingItem = cart.find(item => item.id === productId);
-        
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            cart.push({
-                ...product,
-                quantity: 1
-            });
-        }
-        
-        updateCart();
-        showCartNotification(product.name);
-    }
-    
-    // Update cart
-    function updateCart() {
-        localStorage.setItem('cart', JSON.stringify(cart));
-        updateCartCount();
-        renderCartItems();
-    }
-    
-    // Update cart count
-    function updateCartCount() {
-        const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-        cartCount.textContent = totalItems;
-    }
-    
-    // Render cart items
-    function renderCartItems() {
-        if (cart.length === 0) {
-            cartItemsContainer.innerHTML = '<p class="empty-cart">Shporta juaj është bosh</p>';
-            cartTotal.textContent = '0';
-            return;
-        }
-        
-        cartItemsContainer.innerHTML = '';
-        let total = 0;
-        
-        cart.forEach(item => {
-            const cartItem = document.createElement('div');
-            cartItem.className = 'cart-item';
-            cartItem.innerHTML = `
-                <img src="${item.image}" alt="${item.name}">
-                <div class="cart-item-info">
-                    <p class="cart-item-title">${item.name}</p>
-                    <p class="cart-item-price">${item.price} Lekë x ${item.quantity}</p>
-                </div>
-                <i class="fas fa-times cart-item-remove" data-id="${item.id}"></i>
-            `;
-            
-            cartItemsContainer.appendChild(cartItem);
-            total += item.price * item.quantity;
-        });
-        
-        cartTotal.textContent = total;
-        
-        // Add event listeners to remove buttons
-        document.querySelectorAll('.cart-item-remove').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const productId = parseInt(this.dataset.id);
-                removeFromCart(productId);
-            });
-        });
-    }
-    
-    // Remove from cart
-    function removeFromCart(productId) {
-        cart = cart.filter(item => item.id !== productId);
-        updateCart();
-    }
-    
-    // Show cart notification
-    function showCartNotification(productName) {
-        const notification = document.createElement('div');
-        notification.className = 'notification';
-        notification.innerHTML = `
-            <p>${productName} u shtua në shportë!</p>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 10);
-        
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        }, 3000);
-    }
-    
-    // Cart modal toggle
-    document.querySelector('.cart-icon a').addEventListener('click', function(e) {
-        e.preventDefault();
-        cartModal.style.display = 'flex';
-        renderCartItems();
-    });
-    
-    closeModal.addEventListener('click', function() {
-        cartModal.style.display = 'none';
-    });
-    
-    window.addEventListener('click', function(e) {
-        if (e.target === cartModal) {
-            cartModal.style.display = 'none';
-        }
-    });
-    
-    // Checkout button
-    checkoutBtn.addEventListener('click', function() {
-        alert('Faleminder
+</body>
+</html>
+/* Reset */
+*[+] {margin: 0;[/+][-] {[/-]
+[+]padding:[/+][-] margin:[/-] 0;
+[+]box-sizing: border-box}[/+][-] padding: 0;[/-]
+[-] box-sizing: border-box;[/-]
+[+]body {font-family: 'Arial', sans-serif;[/+][-] }[/-]
+[+] line-height: 1.6;[/+]
+[+]color: #333}[/+][-] body {[/-]
+[-] font-family: 'Arial', sans-serif;[/-]
+[+]/* Header */[/+][-] line-height: 1.6;[/-]
+[+]header {background: #0056b3;[/+][-] color: #333;[/-]
+[+]color: white;[/+][-] }[/-]
+[+] padding: 1rem;[/+]
+[+]text-align: center;}[/+][-] /* Header */[/-]
+[-]header {[/-]
+[+]nav ul {list-style: none;[/+][-] background: #0056b3;[/-]
+[+]display: flex;[/+][-] color: white;[/-]
+[+]justify-content: center;[/+][-] padding: 1rem;[/-]
+[+]gap: 20px;[/+][-] text-align: center;[/-]
+[+]margin-top: 10px;}[/+][-] }[/-]
+nav[+] a {color: white;[/+][-] ul {[/-]
+[+]text-decoration:[/+][-] list-style:[/-] none;
+[+]font-weight: bold;}[/+][-] display: flex;[/-]
+[-] justify-content: center;[/-]
+[+]/* Hero */[/+][-] gap: 20px;[/-]
+[+].hero {background: #e6f0ff;[/+][-] margin-top: 10px;[/-]
+[+]padding: 3rem;[/+][-] }[/-]
+[+] text-align: center;}[/+]
+[+]/* Produktet */[/+][-] nav a {[/-]
+[+].products {padding: 2rem;}[/+][-] color: white;[/-]
+[-] text-decoration: none;[/-]
+[+].product-grid [/+][-] font-weight: bold;[/-]
+[+]{display: grid;[/+][-] }[/-]
+[+] grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));[/+]
+[+]gap: 20px;[/+][-] /* Hero */[/-]
+[+]margin-top: 20px;}[/+][-] .hero {[/-]
+[-] background: #e6f0ff;[/-]
+[+].product-card [/+][-] padding: 3rem;[/-]
+[+]{border: 1px solid #ddd;[/+][-] text-align: center;[/-]
+[+]border-radius: 8px;[/+][-] }[/-]
+[+] padding: 1rem;[/+]
+[+]text-align: center;[/+][-] /* Produktet */[/-]
+[+]transition: transform 0.3s;}[/+][-] .products {[/-]
+[-] padding: 2rem;[/-]
+[+].product-card:hover {transform: translateY(-5px);[/+][-] }[/-]
+[+] box-shadow: 0 5px 15px rgba(0, 86, 179, 0.1);}[/+]
+[-].product-grid {[/-]
+[+].product-card img [/+][-] display: grid;[/-]
+[+]{width: 100%;[/+][-] grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));[/-]
+[+]height: 180px;[/+][-] gap: 20px;[/-]
+[+]object-fit: cover;[/+][-] margin-top: 20px;[/-]
+[+]border-radius: 5px;}[/+][-] }[/-]
+[+].product-btn [/+][-] .product-card {[/-]
+[+]{background: #0056b3;[/+][-] border: 1px solid #ddd;[/-]
+[+]color: white;[/+][-] border-radius: 8px;[/-]
+[+]border: none;[/+][-] padding: 1rem;[/-]
+[+]padding: 8px 16px;[/+][-] text-align: center;[/-]
+[+]border-radius: 4px;[/+][-] transition: transform 0.3s;[/-]
+[+]margin-top: 10px;[/+][-] }[/-]
+[+] cursor: pointer;}[/+]
+[-].product-card:hover {[/-]
+[+]/* Kontakt */[/+][-] transform: translateY(-5px);[/-]
+[+].contact [/+][-] box-shadow: 0 5px 15px rgba(0, 86, 179, 0.1);[/-]
+[+]{background: #f9f9f9;[/+][-] }[/-]
+[+] padding: 2rem;[/+]
+[+]text-align: center;}[/+][-] .product-card img {[/-]
+[-] width: 100%;[/-]
+[+]/* Footer */[/+][-] height: 180px;[/-]
+[+]footer [/+][-] object-fit: cover;[/-]
+[+]{background: #333;[/+][-] border-radius: 5px;[/-]
+[+]color: white;[/+][-] }[/-]
+[+] text-align: center;[/+]
+[+]padding: 1rem;}[/+][-] .product-btn {[/-]
+[-] background: #0056b3;[/-]
+[+]// Function for products buttons [/+][-] color: white;[/-]
+[+]document.querySelectorAll('.product-btn').forEach(button => {button.addEventListener('click', () => [/+][-] border: none;[/-]
+[+]{const productName = button.parentElement.querySelector('h3').textContent;[/+][-] padding: 8px 16px;[/-]
+[+]alert(`Ju keni zgjedhur: ${productName}\n(This can be changed to the new tab or new page )`);});[/+][-] border-radius: 4px;[/-]
+[+]});[/+][-] margin-top: 10px;[/-]
+[-] cursor: pointer;[/-]
+[+]// change colour when is scrolled [/+][-] }[/-]
+[+]window.addEventListener('scroll', () => [/+]
+[+]{const header = document.querySelector('header');[/+][-] /* Kontakt */[/-]
+[+]header.style.backgroundColor = window.scrollY > 50 ? '#003d82' : '#0056b3';});[/+][-] .contact {[/-]
+[-] background: #f9f9f9;[/-]
+[-] padding: 2rem;[/-]
+[-] text-align: center;[/-]
+[-]}[/-]
+[-]/* Footer */[/-]
+[-]footer {[/-]
+[-] background: #333;[/-]
+[-] color: white;[/-]
+[-] text-align: center;[/-]
+[-] padding: 1rem;[/-]
+[-]}[/-]
+[-]// Function for products buttons [/-]
+[-]document.querySelectorAll('.product-btn').forEach(button => {[/-]
+[-] button.addEventListener('click', () => {[/-]
+[-] const productName = button.parentElement.querySelector('h3').textContent;[/-]
+[-] alert(`Ju keni zgjedhur: ${productName}\n(This can be changed to the new tab or new page )`);[/-]
+[-] });[/-]
+[-]});[/-]
+[-]// change colour when is scrolled [/-]
+[-]window.addEventListener('scroll', () => {[/-]
+[-] const header = document.querySelector('header');[/-]
+[-] header.style.backgroundColor = window.scrollY > 50 ? '#003d82' : '#0056b3';[/-]
+[-]});
